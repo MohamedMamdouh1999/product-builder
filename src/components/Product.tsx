@@ -20,8 +20,8 @@ const Product = ({ imageURL, title, description, colors, price, category }: IPro
                 </div>
             </div>
             <div className="flex items-center gap-x-2">
-                <Button className="bg-violet-800">Edit</Button>
-                <Button className="bg-red-700">Delete</Button>
+                <Button className="bg-violet-800 hover:bg-violet-900">Edit</Button>
+                <Button className="bg-red-700 hover:bg-red-800">Delete</Button>
             </div>
         </div>
     )
