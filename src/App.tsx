@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { v7 as uuid } from "uuid";
+import toast, { Toaster } from 'react-hot-toast';
 
 import { products } from "./data/products";
 import { formInputs } from "./data/form-inputs";
@@ -106,8 +107,10 @@ const App = () => {
                     }
                 })
             );
+            toastHandler('Product updated successfully');
         } else {
             setProductsData([newProduct, ...productsData]);
+            toastHandler('Product added successfully');
         }
 
         closeModal();
@@ -125,7 +128,19 @@ const App = () => {
             setIsEditing(false);
         }
     };
-    const onDeleteHandler = (id: string) => setProductsData(productsData.filter(product => product.id !== id));
+    const onDeleteHandler = (id: string) => {
+        setProductsData(productsData.filter(product => product.id !== id));
+        toastHandler('Product deleted successfully');
+    }
+    const toastHandler = (message: string) => toast.success(message,
+        {
+            style: {
+                borderRadius: '10px',
+                background: '#333',
+                color: '#fff'
+            }
+        }
+    );
 
     // Renders
     const productsList = productsData.map(product => <Product key={product.id} product={product} onEditHandler={onEditHandler} onDeleteHandler={onDeleteHandler} />);
@@ -174,6 +189,7 @@ const App = () => {
                 </form>
             </Modal>
             <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">{productsList}</section>
+            <Toaster />
         </main>
     );
 };
