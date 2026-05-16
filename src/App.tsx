@@ -46,8 +46,12 @@ const App = () => {
     });
     const [isEditing, setIsEditing] = useState(false);
     const [isOpenModal, setIsOpenModal] = useState(false);
-    const openModal = () => setIsOpenModal(true);
-    const closeModal = () => {
+    const [isOpenConfirmModal, setIsOpenConfirmModal] = useState(false);
+    
+    // Handlers
+    const openModalHandler = () => setIsOpenModal(true);
+    const openConfirmModalHandler = () => setIsOpenConfirmModal(true);
+    const closeModalHandler = () => {
         setIsOpenModal(false);
         setIsEditing(false);
         setProduct(defaultProduct);
@@ -61,8 +65,10 @@ const App = () => {
             colors: ""
         });
     };
-
-    // Handlers
+    const closeConfirmModalHandler = () => {
+        setIsOpenConfirmModal(false);
+        setProduct(defaultProduct);
+    };
     const onChangeHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
         setProduct({
@@ -113,7 +119,7 @@ const App = () => {
             toastHandler('Product added successfully');
         }
 
-        closeModal();
+        closeModalHandler();
     };
     const onEditHandler = (id: string) => {
         const selectedProduct = productsData.find(product => product.id === id);
@@ -122,14 +128,15 @@ const App = () => {
             setProduct(selectedProduct);
             setSelectedCategory(selectedProduct.category);
             setTempColors(selectedProduct.colors);
-            openModal();
+            openModalHandler();
         } else {
-            closeModal();
+            closeModalHandler();
             setIsEditing(false);
         }
     };
-    const onDeleteHandler = (id: string) => {
-        setProductsData(productsData.filter(product => product.id !== id));
+    const onDeleteHandler = () => {
+        setProductsData(productsData.filter(item => item.id !== product.id));
+        closeConfirmModalHandler();
         toastHandler('Product deleted successfully');
     }
     const toastHandler = (message: string) => toast.success(message,
@@ -143,7 +150,10 @@ const App = () => {
     );
 
     // Renders
-    const productsList = productsData.map(product => <Product key={product.id} product={product} onEditHandler={onEditHandler} onDeleteHandler={onDeleteHandler} />);
+    const productsList = productsData.map(product => <Product key={product.id} product={product} onEditHandler={onEditHandler} onDeleteHandler={(id: string) => {
+        openConfirmModalHandler();
+        setProduct(productsData.find(product => product.id === id)!);
+    }} />);
     const inputsList = formInputs.map((input) => (
         <div key={input.id} className="flex flex-col gap-y-1">
             <label htmlFor={input.id}>{input.label}</label>
@@ -172,8 +182,11 @@ const App = () => {
 
     return (
         <main className="container mx-auto p-5 flex flex-col gap-y-5">
-            <Button width="w-fit" className="bg-indigo-800 hover:bg-indigo-900 mx-auto" onClick={openModal}>Add a new product</Button>
-            <Modal isOpen={isOpenModal} close={closeModal} title={isEditing ? "Edit product" : "Add a new product"}>
+            <Button width="w-fit" className="bg-indigo-800 hover:bg-indigo-900 mx-auto" onClick={openModalHandler}>Add a new product</Button>
+            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {productsData.length > 0 ? productsList : <p className="col-span-full mt-4 text-center text-gray-500">No products found</p>}
+            </section>
+            <Modal isOpen={isOpenModal} close={closeModalHandler} title={isEditing ? "Edit product" : "Add a new product"}>
                 <form onSubmit={onSubmitHandler} className="flex flex-col gap-y-3">
                     {inputsList}
                     <Select selected={selectedCategory} setSelected={setSelectedCategory} />
@@ -184,11 +197,19 @@ const App = () => {
                     {tempColors.length > 0 && <div className="flex flex-wrap items-center gap-1">{tempColorsList}</div>}
                     <div className="flex items-center gap-x-2">
                         <Button type="submit" className="bg-violet-800 hover:bg-violet-900">{isEditing ? "Edit" : "Save"}</Button>
-                        <Button onClick={closeModal} type="reset" className="bg-red-700 hover:bg-red-800">Cancel</Button>
+                        <Button onClick={closeModalHandler} type="reset" className="bg-red-700 hover:bg-red-800">Cancel</Button>
                     </div>
                 </form>
             </Modal>
-            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">{productsList}</section>
+            <Modal isOpen={isOpenConfirmModal} close={closeConfirmModalHandler} title="Delete product">
+                <div className="space-y-3">
+                    <p>Are you sure you want to delete this product?</p>
+                    <div className="flex items-center gap-x-2">
+                        <Button onClick={onDeleteHandler} className="bg-red-800 hover:bg-red-900">Yes</Button>
+                        <Button onClick={closeConfirmModalHandler} type="reset" className="bg-gray-400 hover:bg-gray-500">No</Button>
+                    </div>
+                </div>
+            </Modal>
             <Toaster />
         </main>
     );
